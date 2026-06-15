@@ -435,12 +435,20 @@ with tab1:
                     st.session_state["search_results_df"] = None
 
         if st.session_state["search_results_df"] is not None:
+            # Configured with a clean, clickable "Connect" link directly inside every row of the table!
             event = st.dataframe(
                 st.session_state["search_results_df"], 
                 width="stretch",
                 on_select="rerun",
                 selection_mode="single-row",
-                key="leads_dataframe"
+                key="leads_dataframe",
+                column_config={
+                    "LinkedIn Link": st.column_config.LinkColumn(
+                        "Connect on LinkedIn",
+                        help="Click to open this profile directly in a new tab!",
+                        display_text="🔗 Connect"
+                    )
+                }
             )
             
             selected_row_idx = None
@@ -645,8 +653,15 @@ with tab3:
     with col_ui1:
         target_name = st.text_input("Target Recipient Name", value=st.session_state["target_name"])
         target_firm = st.text_input("Target Recipient's Firm", value=st.session_state["target_firm"])
+        
+        # SICK NATIVE LINK BUTTON: Instantly launches their profile directly from Tab 3!
+        st.link_button(
+            f"🔗 Open {target_name.split()[0]}'s LinkedIn Profile", 
+            url=st.session_state["target_url"],
+            use_container_width=True
+        )
     with col_ui2:
-        target_snippet = st.text_area("Live Biography / Context (from LinkedIn)", value=st.session_state["target_snippet"], height=100)
+        target_snippet = st.text_area("Live Biography / Context (from LinkedIn)", value=st.session_state["target_snippet"], height=105)
     
     first_name = target_name.split()[0]
     
@@ -793,8 +808,8 @@ with tab3:
         
         # LIVE SINGLE-ROW OVERWRITE SYNC TO GOOGLE SHEETS! (Wired with our brand new dynamic name + handle search!)
         # LIVE SINGLE-ROW OVERWRITE SYNC & BULLETPROOF COPY-LAUNCH BUTTON
-        col_sv1, col_sv2, col_sv3 = st.columns([1.5, 1.5, 3])
-        
+    # LIVE SINGLE-ROW OVERWRITE SYNC TO GOOGLE SHEETS!
+        col_sv1, col_sv2 = st.columns([1, 4])
         with col_sv1:
             if st.button("💾 Save Custom Pitch to CRM", type="primary", use_container_width=True):
                 with st.spinner("Locating lead and updating spreadsheet..."):
@@ -805,37 +820,8 @@ with tab3:
                         st.success(f"✅ CRM Row Updated successfully! ({error_msg})")
                     else:
                         st.error(f"❌ Overwrite Failed: {error_msg}")
-                        
         with col_sv2:
-            # 1. Escape quotes & newlines to prevent Javascript string syntax errors
-            escaped_invite = final_invite.replace("'", "\\'").replace('"', '\\"').replace("\n", "\\n")
-            escaped_url = st.session_state["target_url"].replace("'", "\\'")
-            
-            # 2. Sleek, inline-styled HTML5/JS button that copies to clipboard and opens the URL simultaneously!
-            button_html = f"""
-            <button id="copy-launch-btn" onclick="navigator.clipboard.writeText('{escaped_invite}'); window.open('{escaped_url}', '_blank');" style="
-                background-color: #ff4b4b;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                font-size: 15px;
-                font-weight: bold;
-                border-radius: 8px;
-                cursor: pointer;
-                width: 100%;
-                height: 43px;
-                display: inline-block;
-                text-align: center;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                transition: all 0.3s ease;
-            " onmouseover="this.style.backgroundColor='#ff3333'" onmouseout="this.style.backgroundColor='#ff4b4b'">
-                📋 Copy Invite & Open
-            </button>
-            """
-            st.markdown(button_html, unsafe_allow_html=True)
-            
-        with col_sv3:
-            st.info("💡 *Tip: Click 'Save Custom Pitch' to update your Google Sheet [1]. Click 'Copy Invite & Open' to instantly copy your 300-char handshake note and open their LinkedIn profile in a new tab [1]!*")
+            st.info("💡 *Tip: Click 'Save Custom Pitch' to update your Google Sheet. You can edit the text inside the boxes above manually before saving [1]!*")
 
     with col_p2:
         st.info("💡 **Why this works:** Rather than sending a generic intro, highlighting your actual technical background (Vivarium & V-OS Sovereign) proves immediately to senior partners that you possess genuine technical and restructuring-related skills.")
