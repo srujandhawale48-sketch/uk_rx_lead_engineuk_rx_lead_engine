@@ -209,31 +209,6 @@ def get_google_sheet(sheet_name):
         return sheet, None
     except Exception as e:
         return None, str(e)
-# NEW DYNAMIC AUTO-SAVE CALLBACK (Zero-clicks background cloud sync!)
-def auto_save_checklist():
-    # Streamlit's data_editor stores pending changes in session_state under the widget's key
-    editor_state = st.session_state.get("crm_interactive_editor")
-    if editor_state:
-        edited_rows = editor_state.get("edited_rows", {})
-        if edited_rows:
-            # Connect to Google Sheets in the background
-            sheet, conn_error = get_google_sheet(sheet_name)
-            if sheet is not None:
-                try:
-                    for row_key, changes in edited_rows.items():
-                        if "Visited" in changes:
-                            # Python 0-based index corresponds to Row 2 in Google Sheets (Row 1 is headers)
-                            sheet_row_idx = int(row_key) + 2
-                            val_to_write = "TRUE" if changes["Visited"] else "FALSE"
-                            
-                            # Instantly write "TRUE" or "FALSE" directly to Column J (10) in the cloud
-                            sheet.update_cell(sheet_row_idx, 10, val_to_write)
-                            
-                            # Keep our local in-memory dataframe updated so it doesn't reset on rerun
-                            if st.session_state["crm_df_state"] is not None:
-                                st.session_state["crm_df_state"].at[int(row_key), "Visited"] = changes["Visited"]
-                except Exception as e:
-                    st.sidebar.error(f"Auto-Save Failed: {e}")
 
 # Helper function to find and overwrite a specific row in Google Sheets (Dual-Match Handle & Name Fallback!)
 def update_custom_pitch_in_sheets(sheet_name, target_url, target_name, invite_text, follow_up_text):
@@ -909,6 +884,7 @@ with tab3:
         st.info("💡 **Why this works:** Rather than sending a generic intro, highlighting your actual technical background (Vivarium & V-OS Sovereign) proves immediately to senior partners that you possess genuine technical and restructuring-related skills.")
 
 # ---- TAB 4: INTERACTIVE CRM ----
+# ---- TAB 4: INTERACTIVE CRM ----
 with tab4:
     st.subheader("Your Active Cloud CRM Dashboard")
     st.write("Displaying metrics and records pulled directly from your active Google Sheet.")
@@ -928,7 +904,7 @@ with tab4:
                 with st.spinner("Fetching live data from Google Sheets..."):
                     try:
                         # Fetch all 10 columns natively (including the new Column J!)
-                        names = sheet.col_values(1)[1:]       # Column A
+                        names = sheet.col_values(1)[1:]       # Column A (Excluding header row)
                         firms = sheet.col_values(2)[1:]       # Column B
                         categories = sheet.col_values(3)[1:]  # Column C
                         locations = sheet.col_values(4)[1:]   # Column D
@@ -977,20 +953,20 @@ with tab4:
         if st.session_state["crm_df_state"] is not None:
             df = st.session_state["crm_df_state"]
             
-            # 1. Render premium glassmorphism KPI Metrics
+            # 1. Render premium glassmorphism KPI Metrics (Restored original three metrics!)
             boutiques = len(df[df["Category"].str.strip().str.lower() == "elite boutique"])
             specs = len(df[df["Category"].str.strip().str.lower() == "independent specialist"])
             visited_count = len(df[df["Visited"] == True])
             
             col_mt1, col_col2, col_col3 = st.columns(3)
             with col_mt1:
-                st.markdown(f"<div class='custom-card'><div class='metric-label'>Total CRM Leads</div><div class='metric-value'>{len(df)}</div></div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='custom-card'><div class='metric-label'>Total CRM Leads</div><div class='metric-value'>{len(df)} (Visited: {visited_count})</div></div>", unsafe_allow_html=True)
             with col_col2:
-                st.markdown(f"<div class='custom-card'><div class='metric-label'>Visited Contacts ✅</div><div class='metric-value'>{visited_count}</div></div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='custom-card'><div class='metric-label'>Elite Boutique Targets</div><div class='metric-value'>{boutiques}</div></div>", unsafe_allow_html=True)
             with col_col3:
                 st.markdown(f"<div class='custom-card'><div class='metric-label'>Specialist RX Targets</div><div class='metric-value'>{specs}</div></div>", unsafe_allow_html=True)
             
-            # 2. Render the interactive spreadsheet editor (Triggering background auto-save on click!)
+            # 2. Render the interactive spreadsheet editor (Only the "Visited" checkboxes are editable!)
             edited_df = st.data_editor(
                 df,
                 width="stretch",
@@ -1006,8 +982,29 @@ with tab4:
                         display_text="🔗 Profile"
                     )
                 },
-                key="crm_interactive_editor",
-                on_change=auto_save_checklist  # <--- Trigger background auto-save instantly on click!
+                key="crm_interactive_editor"
             )
+            
+            # 3. HIGH-SPEED ONE-CALL BATCH SAVE (Overwrites entire Column J instantly in 1 click!)
+            col_sv_crm1, col_sv_crm2 = st.columns([1.5, 4])
+            with col_sv_crm1:
+                if st.button("💾 Save Checklist Edits", type="primary", use_container_width=True):
+                    with st.spinner("Syncing your checkmarks securely with Google Sheets Cloud..."):
+                        try:
+                            # Map Python booleans to Google Sheet strings
+                            col_j_values = ["Visited"] + ["TRUE" if val else "FALSE" for val in edited_df["Visited"].tolist()]
+                            
+                            # Write the entire column J range to Google Sheets in exactly ONE API call! (Bypasses 429 limits)
+                            range_to_update = f"J1:J{len(col_j_values)}"
+                            sheet.update(range_to_update, [[v] for v in col_j_values])
+                            
+                            # Keep session state updated with your newly saved checkboxes
+                            st.session_state["crm_df_state"] = edited_df
+                            st.success("✅ Checklist edits saved permanently in Google Sheets!")
+                            st.rerun()
+                        except Exception as save_err:
+                            st.error(f"Error saving checklist: {save_err}")
+            with col_sv_crm2:
+                st.info("💡 *Tip: Check or uncheck the 'Visited? ✅' boxes as you network, and click 'Save Checklist Edits' to permanently back them up in your Google Sheet!*")
             
             
