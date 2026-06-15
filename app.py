@@ -529,15 +529,59 @@ with tab2:
             st.error("Please enter a valid name.")
 
 # ---- TAB 3: AI PITCH COMPOSER (LIVE DYNAMIC CV FILE UPLOADED) ----
+# ---- TAB 3: AI PITCH COMPOSER (LIVE DYNAMIC CV FILE UPLOADED) ----
 with tab3:
     st.subheader("AI-Assisted Pitch Builder")
     st.write("Generates both a 300-character Invite Handshake and a Highly Detailed, CV-driven coffee-chat request in a single call [1].")
     
     pitch_type = st.radio(
         "Select Outreach Strategy:",
-        ["Partner / MD Cold Connection", "Durham Alumni Warm Intro", "HR / Recruiter Inquiry"],
+        ["Select Outreach Strategy:", "Partner / MD Cold Connection", "Durham Alumni Warm Intro", "HR / Recruiter Inquiry"],
+        horizontal=True,
+        index=1  # Default to Partner Cold Connection
+    )
+    
+    st.divider()
+    
+    # SICK & CRAZY FEATURE: Lead Source Selector!
+    lead_source = st.radio(
+        "Select Lead Source:",
+        ["Active Search Results (Tab 1 Selection)", "Load Synced Lead from CRM (Google Sheets)"],
         horizontal=True
     )
+    
+    # If loading from CRM, fetch names dynamically, sort them A-Z, and auto-populate!
+    if lead_source == "Load Synced Lead from CRM (Google Sheets)":
+        sheet, conn_error = get_google_sheet(sheet_name)
+        if conn_error:
+            st.error(f"❌ Google Sheets Connection Error: {conn_error}")
+        elif sheet is not None:
+            with st.spinner("Fetching synced lead directory from your Google Sheet..."):
+                try:
+                    records = sheet.get_all_records()
+                    if records:
+                        crm_df = pd.DataFrame(records)
+                        
+                        # Filter out empty names, extract unique ones, and sort alphabetically A-Z!
+                        unique_names = sorted([name for name in crm_df["Name & Title"].unique() if name.strip()])
+                        
+                        selected_name = st.selectbox("🔍 Search & Select Saved Lead from CRM:", unique_names)
+                        
+                        # Retrieve matching row and load details into active state
+                        matched_row = crm_df[crm_df["Name & Title"] == selected_name].iloc[0]
+                        raw_name = selected_row_name = selected_name.split(" - ")[0].split(" | ")[0]
+                        
+                        # Force update session states
+                        st.session_state["target_name"] = raw_name
+                        st.session_state["target_firm"] = matched_row["Detected Firm"]
+                        st.session_state["target_snippet"] = matched_row["Notes / Snippet Summary"]
+                        st.session_state["target_url"] = matched_row["LinkedIn Link"]
+                    else:
+                        st.warning("ℹ️ Your Google Sheet is connected but contains no leads yet. Please sync some leads from Tab 1 first.")
+                except Exception as e:
+                    st.error(f"Error loading leads from CRM: {e}")
+                    
+    st.divider()
     
     col_ui1, col_ui2 = st.columns(2)
     with col_ui1:
