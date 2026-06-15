@@ -119,12 +119,25 @@ def extract_text_from_pdf(uploaded_file):
         return f"Error reading PDF: {e}"
 
 # Helper function to connect to Google Sheets
+# Helper function to connect to Google Sheets (Supports both Local JSON & Secure Cloud Secrets!)
 def get_google_sheet(sheet_name):
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name("google_creds.json", scope)
+        
+        # 1. Cloud Mode: Load natively from encrypted Streamlit Secrets
+        if "gcp_service_account" in st.secrets:
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(
+                dict(st.secrets["gcp_service_account"]), 
+                scope
+            )
+        # 2. Local Mode Fallback: Load from local google_creds.json
+        else:
+            creds = ServiceAccountCredentials.from_json_keyfile_name("google_creds.json", scope)
+            
         client = gspread.authorize(creds)
-        sheet = client.open(sheet_name).sheet1
+        
+        # Securely locks onto your exact Spreadsheet ID!
+        sheet = client.open_by_key("1QczXissyO24ZorFyOaodDThm-29AbdQFU4tsb0UkSzI").sheet1
         return sheet, None
     except Exception as e:
         return None, str(e)
