@@ -55,6 +55,29 @@ st.markdown("""
         color: #8b949e !important;
         text-decoration: line-through !important;
     }
+    /* Premium style for our active, unvisited Connect button */
+    .card-link {
+        background-color: #1f6feb !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: bold;
+        border-radius: 6px;
+        display: inline-block;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        transition: background-color 0.2s;
+    }
+    .card-link:hover {
+        background-color: #388bfd !important;
+    }
+    /* SICK VISITED STATE: Instantly turns into a faded grey outlined box when clicked! */
+    .card-link:visited {
+        background-color: #161b22 !important;
+        color: #8b949e !important;
+        border: 1px solid #30363d !important;
+        box-shadow: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -440,56 +463,84 @@ with tab1:
                     st.session_state["search_results_df"] = None
 
         if st.session_state["search_results_df"] is not None:
-            # Configured with a clean, clickable "Connect" link directly inside every row of the table!
-            event = st.dataframe(
-                st.session_state["search_results_df"], 
-                width="stretch",
-                on_select="rerun",
-                selection_mode="single-row",
-                key="leads_dataframe",
-                column_config={
-                    "LinkedIn Link": st.column_config.LinkColumn(
-                        "Connect on LinkedIn",
-                        help="Click to open this profile directly in a new tab!",
-                        display_text="🔗 Connect"
-                    )
-                }
-            )
+            # Select View Mode
+            view_mode = st.radio("Select View Mode:", ["Table View (For Selection)", "Cards View (Sleek Outreach + Visited Tracker)"], horizontal=True)
             
-            selected_row_idx = None
-            if event:
-                try:
-                    rows = event.selection.rows
-                    if rows:
-                        selected_row_idx = rows[0]
-                except AttributeError:
+            if view_mode == "Table View (For Selection)":
+                # Standard Table View (Required to select and load contacts into Tab 3)
+                event = st.dataframe(
+                    st.session_state["search_results_df"], 
+                    width="stretch",
+                    on_select="rerun",
+                    selection_mode="single-row",
+                    key="leads_dataframe",
+                    column_config={
+                        "LinkedIn Link": st.column_config.LinkColumn(
+                            "Connect on LinkedIn",
+                            help="Click to open this profile directly in a new tab!",
+                            display_text="🔗 Connect"
+                        )
+                    }
+                )
+                
+                selected_row_idx = None
+                if event:
                     try:
-                        rows = event.get("selection", {}).get("rows", [])
+                        rows = event.selection.rows
                         if rows:
                             selected_row_idx = rows[0]
-                    except Exception:
-                        pass
-            
-            if selected_row_idx is not None:
-                selected_row = st.session_state["search_results_df"].iloc[selected_row_idx]
-                new_url = selected_row["LinkedIn Link"]
+                    except AttributeError:
+                        try:
+                            rows = event.get("selection", {}).get("rows", [])
+                            if rows:
+                                selected_row_idx = rows[0]
+                        except Exception:
+                            pass
                 
-                # ONLY reset and load if it's actually a brand-new selection!
-                if st.session_state.get("target_url") != new_url:
+                if selected_row_idx is not None:
+                    selected_row = st.session_state["search_results_df"].iloc[selected_row_idx]
                     raw_name = selected_row["Name & Title"].split(" - ")[0].split(" | ")[0]
                     st.session_state["target_name"] = raw_name
                     st.session_state["target_firm"] = selected_row["Detected Firm"]
                     st.session_state["target_snippet"] = selected_row["Snippet Summary"]
-                    st.session_state["target_url"] = new_url
-                    st.session_state["ai_generated_invite"] = "" 
+                    st.session_state["target_url"] = selected_row["LinkedIn Link"]
+                    st.session_state["ai_generated_invite"] = "" # Reset custom pitch
                     st.session_state["ai_generated_follow_up"] = ""
                     
+                    # Dynamic widget state destruction to force text-area resets
                     if "live_invite_area" in st.session_state:
                         del st.session_state["live_invite_area"]
                     if "live_follow_up_area" in st.session_state:
                         del st.session_state["live_follow_up_area"]
                         
                     st.toast(f"🎯 Loaded {raw_name} ({selected_row['Detected Firm']}) into Pitch Composer!")
+            else:
+                # SICK & CRAZY CARDS VIEW: Standard HTML links that natively turn grey when clicked!
+                for idx, row in st.session_state["search_results_df"].iterrows():
+                    name_title = row["Name & Title"]
+                    firm = row["Detected Firm"]
+                    category = row["Category"]
+                    location_val = row["Location"]
+                    url = row["LinkedIn Link"]
+                    snippet = row["Snippet Summary"]
+                    
+                    card_html = f"""
+                    <div class="custom-card">
+                        <h4 style="color: #58a6ff; margin-top: 0; margin-bottom: 5px;">👤 {name_title}</h4>
+                        <p style="margin: 0; font-size: 13px; color: #8b949e;">
+                            💼 <b>Firm:</b> {firm} ({category}) | 📍 <b>Location:</b> {location_val}
+                        </p>
+                        <p style="margin-top: 10px; margin-bottom: 12px; font-size: 13px; color: #c9d1d9; font-style: italic; line-height: 1.4;">
+                            "{snippet}"
+                        </p>
+                        <div style="margin-top: 12px;">
+                            <a href="{url}" target="_blank" class="card-link">
+                                🔗 Connect on LinkedIn
+                            </a>
+                        </div>
+                    </div>
+                    """
+                    st.markdown(card_html, unsafe_allow_html=True)
             
     with col2:
         st.write("### Actions")
