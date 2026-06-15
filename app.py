@@ -54,7 +54,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # 2. Comprehensive UK RX Firms Database with Email Mapping Patterns
+# 2. Comprehensive UK RX & Capital Advisory Firms Database (Expanded to 59 Elite Firms!)
 UK_RX_DATABASE = {
+    # --- ELITE BOUTIQUES & INVESTMENT BANKS ---
     "Alvarez & Marsal (A&M)": {"domain": "alvarezandmarsal.com", "syntax": "fi.l", "category": "Elite Boutique", "keywords": ["Alvarez", "A&M", "Alvarez & Marsal"]},
     "Houlihan Lokey": {"domain": "hl.com", "syntax": "f.l", "category": "Elite Boutique", "keywords": ["Houlihan", "Lokey"]},
     "FTI Consulting": {"domain": "fticonsulting.com", "syntax": "f.l", "category": "Elite Boutique", "keywords": ["FTI", "FTI Consulting"]},
@@ -68,6 +70,7 @@ UK_RX_DATABASE = {
     "Jefferies": {"domain": "jefferies.com", "syntax": "f.l", "category": "Elite Boutique", "keywords": ["Jefferies"]},
     "Greenhill & Co.": {"domain": "greenhill.com", "syntax": "f.l", "category": "Elite Boutique", "keywords": ["Greenhill"]},
     
+    # --- INDEPENDENT RX & INSOLVENCY SPECIALISTS ---
     "Interpath Advisory": {"domain": "interpathadvisory.com", "syntax": "f.l", "category": "Independent Specialist", "keywords": ["Interpath"]},
     "FRP Advisory": {"domain": "frpadvisory.com", "syntax": "f.l", "category": "Independent Specialist", "keywords": ["FRP", "FRP Advisory"]},
     "Quantuma": {"domain": "quantuma.com", "syntax": "f.l", "category": "Independent Specialist", "keywords": ["Quantuma"]},
@@ -76,6 +79,7 @@ UK_RX_DATABASE = {
     "Leonard Curtis": {"domain": "lcg.info", "syntax": "f.l", "category": "Independent Specialist", "keywords": ["Leonard Curtis", "Leonard"]},
     "Evelyn Partners (ex-ReSolve)": {"domain": "evelyn.com", "syntax": "f.l", "category": "Independent Specialist", "keywords": ["Evelyn", "Evelyn Partners", "ReSolve"]},
     
+    # --- MID-TIER ACCOUNTING NETWORKS ---
     "BDO": {"domain": "bdo.co.uk", "syntax": "f.l", "category": "Mid-Tier Network", "keywords": ["BDO"]},
     "Grant Thornton UK": {"domain": "uk.gt.com", "syntax": "f.l", "category": "Mid-Tier Network", "keywords": ["Grant Thornton", "Thornton"]},
     "RSM UK": {"domain": "rsmuk.com", "syntax": "f.l", "category": "Mid-Tier Network", "keywords": ["rsm", "rsm uk"]},
@@ -87,14 +91,50 @@ UK_RX_DATABASE = {
     "Liverpool Street Capital Advisors": {"domain": "lscadvisors.com", "syntax": "f.l", "category": "Mid-Tier Network", "keywords": ["Liverpool Street", "Liverpool"]},
     "MCF Corporate Finance": {"domain": "mcfcf.com", "syntax": "f.l", "category": "Mid-Tier Network", "keywords": ["MCF"]},
     
+    # --- BIG 4 ---
     "PwC": {"domain": "pwc.com", "syntax": "f.l", "category": "Big 4", "keywords": ["PwC", "PriceWaterhouse", "PricewaterhouseCoopers"]},
     "Deloitte": {"domain": "deloitte.co.uk", "syntax": "f.l", "category": "Big 4", "keywords": ["Deloitte"]},
     "EY": {"domain": "ey.com", "syntax": "f.l", "category": "Big 4", "keywords": ["EY", "Ernst", "Young", "Ernst & Young"]},
     "KPMG": {"domain": "kpmg.co.uk", "syntax": "f.l", "category": "Big 4", "keywords": ["KPMG"]},
     
+    # --- OPERATIONAL TURNAROUND & STRATEGY ---
     "BCG TURN": {"domain": "bcg.com", "syntax": "f.l", "category": "Consulting / Strategy", "keywords": ["BCG", "Boston Consulting", "BCG TURN"]},
     "McKinsey & Company (Transformation/RTS)": {"domain": "mckinsey.com", "syntax": "f.l", "category": "Consulting / Strategy", "keywords": ["McKinsey", "RTS"]},
-    "Bain & Company (Turnaround/Restructuring)": {"domain": "bain.com", "syntax": "f.l", "category": "Consulting / Strategy", "keywords": ["Bain"]}
+    "Bain & Company (Turnaround/Restructuring)": {"domain": "bain.com", "syntax": "f.l", "category": "Consulting / Strategy", "keywords": ["Bain"]},
+    
+    # --- ADDED: BUY-SIDE SPECIAL SITUATIONS & TURNAROUND PE ---
+    "Endless LLP (and Enact)": {"domain": "endlessllp.com", "syntax": "f.l", "category": "Buy-Side Special Sits", "keywords": ["Endless", "Enact", "Endless LLP"]},
+    "Alchemy Partners": {"domain": "alchemypartners.co.uk", "syntax": "f.l", "category": "Buy-Side Special Sits", "keywords": ["Alchemy", "Alchemy Partners"]},
+    "Aurelius Group (London)": {"domain": "aurelius-group.com", "syntax": "fi.l", "category": "Buy-Side Special Sits", "keywords": ["Aurelius", "Aurelius Group"]},
+    "Mutares (London)": {"domain": "mutares.com", "syntax": "fi.l", "category": "Buy-Side Special Sits", "keywords": ["Mutares"]},
+    "Rutland Partners": {"domain": "rutlandpartners.com", "syntax": "f.l", "category": "Buy-Side Special Sits", "keywords": ["Rutland", "Rutland Partners"]},
+    "Greybull Capital": {"domain": "greybull.co.uk", "syntax": "f.l", "category": "Buy-Side Special Sits", "keywords": ["Greybull", "Greybull Capital"]},
+    "WestBridge (Splitstone)": {"domain": "westbridge.co.uk", "syntax": "f.l", "category": "Buy-Side Special Sits", "keywords": ["WestBridge", "Splitstone"]},
+    
+    # --- ADDED: BUY-SIDE PRIVATE CREDIT & DIRECT LENDING ---
+    "Intermediate Capital Group (ICG)": {"domain": "icgc.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["ICG", "Intermediate Capital", "Intermediate Capital Group"]},
+    "Ares Management (London)": {"domain": "aresmgmt.com", "syntax": "fi.l", "category": "Buy-Side Private Credit", "keywords": ["Ares", "Ares Management"]},
+    "HPS Investment Partners": {"domain": "hpspartners.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["HPS", "HPS Investment", "HPS Partners"]},
+    "Alcentra": {"domain": "alcentra.com", "syntax": "fi.l", "category": "Buy-Side Private Credit", "keywords": ["Alcentra"]},
+    "Park Square Capital": {"domain": "parksquarecapital.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["Park Square", "Park Square Capital"]},
+    "Hayfin Capital Management": {"domain": "hayfin.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["Hayfin", "Hayfin Capital"]},
+    "Pollen Street Capital": {"domain": "pollenstreetgroup.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["Pollen Street", "Pollen Street Capital"]},
+    "RBC BlueBay Asset Management": {"domain": "bluebay.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["BlueBay", "RBC BlueBay"]},
+    "CVC Credit Partners": {"domain": "cvc.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["CVC Credit", "CVC"]},
+    "H.I.G. Capital (H.I.G. Europe)": {"domain": "higcapital.com", "syntax": "fi.l", "category": "Buy-Side Private Credit", "keywords": ["HIG", "HIG Capital"]},
+    "Blackstone Credit": {"domain": "blackstone.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["Blackstone Credit", "BX Credit", "Blackstone"]},
+    "KKR Credit": {"domain": "kkr.com", "syntax": "f.l", "category": "Buy-Side Private Credit", "keywords": ["KKR Credit", "KKR"]},
+    "Tikehau Capital": {"domain": "tikehaucapital.com", "syntax": "fi.l", "category": "Buy-Side Private Credit", "keywords": ["Tikehau", "Tikehau Capital"]},
+    
+    # --- ADDED: SPECIALIZED DEBT ADVISORY BOUTIQUES ---
+    "Arkwright London": {"domain": "arkwright.co.uk", "syntax": "f.l", "category": "Debt Advisory Boutique", "keywords": ["Arkwright", "Arkwright London"]},
+    "MDW Capital Partners": {"domain": "mdwcapital.com", "syntax": "f.l", "category": "Debt Advisory Boutique", "keywords": ["MDW", "MDW Capital"]},
+    "The MacDonald Partnership (TMP)": {"domain": "tmp.co.uk", "syntax": "f.l", "category": "Debt Advisory Boutique", "keywords": ["MacDonald Partnership", "TMP"]},
+    "Olea Capital": {"domain": "oleacapital.com", "syntax": "f.l", "category": "Debt Advisory Boutique", "keywords": ["Olea", "Olea Capital"]},
+    "Cornerstone Capital": {"domain": "cornerstonecapital.co.uk", "syntax": "f.l", "category": "Debt Advisory Boutique", "keywords": ["Cornerstone Capital", "Cornerstone"]},
+    
+    # --- ADDED: INTERIM CFO & RECOVERY SPECIALISTS ---
+    "FD Capital": {"domain": "fdcapital.co.uk", "syntax": "f.l", "category": "Interim Recovery Specialist", "keywords": ["FD Capital"]}
 }
 
 ALL_FIRMS = list(UK_RX_DATABASE.keys())
