@@ -558,18 +558,36 @@ with tab3:
         elif sheet is not None:
             with st.spinner("Fetching synced lead directory from your Google Sheet..."):
                 try:
-                    records = sheet.get_all_records()
-                    if records:
-                        crm_df = pd.DataFrame(records)
+                    # Fetch columns directly by their mathematical positions to prevent any header-space KeyErrors!
+                    names = sheet.col_values(1)[1:]      # Column A (Excluding header row)
+                    firms = sheet.col_values(2)[1:]      # Column B
+                    urls = sheet.col_values(5)[1:]       # Column E
+                    snippets = sheet.col_values(9)[1:]   # Column I (Notes)
+                    
+                    if names:
+                        # Pad lists with empty strings if any are slightly shorter to prevent length mismatches
+                        max_len = max(len(names), len(firms), len(urls), len(snippets))
+                        names += [""] * (max_len - len(names))
+                        firms += [""] * (max_len - len(firms))
+                        urls += [""] * (max_len - len(urls))
+                        snippets += [""] * (max_len - len(snippets))
                         
-                        # Filter out empty names, extract unique ones, and sort alphabetically A-Z!
-                        unique_names = sorted([name for name in crm_df["Name & Title"].unique() if name.strip()])
+                        # Build a robust temporary dataframe
+                        crm_df = pd.DataFrame({
+                            "Name & Title": names,
+                            "Detected Firm": firms,
+                            "LinkedIn Link": urls,
+                            "Notes / Snippet Summary": snippets
+                        })
+                        
+                        # Filter out blank rows, extract unique names, and sort A-Z
+                        unique_names = sorted([name.strip() for name in crm_df["Name & Title"].unique() if name.strip()])
                         
                         selected_name = st.selectbox("🔍 Search & Select Saved Lead from CRM:", unique_names)
                         
                         # Retrieve matching row and load details into active state
                         matched_row = crm_df[crm_df["Name & Title"] == selected_name].iloc[0]
-                        raw_name = selected_row_name = selected_name.split(" - ")[0].split(" | ")[0]
+                        raw_name = selected_name.split(" - ")[0].split(" | ")[0]
                         
                         # Force update session states
                         st.session_state["target_name"] = raw_name
