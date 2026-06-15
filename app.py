@@ -524,6 +524,7 @@ with tab1:
                     url = row["LinkedIn Link"]
                     snippet = row["Snippet Summary"]
                     
+                    # Injecting client-side JS state-changer to bypass browser redirect blocks!
                     card_html = f"""
                     <div class="custom-card">
                         <h4 style="color: #58a6ff; margin-top: 0; margin-bottom: 5px;">👤 {name_title}</h4>
@@ -534,7 +535,7 @@ with tab1:
                             "{snippet}"
                         </p>
                         <div style="margin-top: 12px;">
-                            <a href="{url}" target="_blank" class="card-link">
+                            <a href="{url}" target="_blank" class="card-link" onclick="this.style.backgroundColor='#161b22'; this.style.color='#8b949e'; this.style.border='1px solid #30363d';">
                                 🔗 Connect on LinkedIn
                             </a>
                         </div>
