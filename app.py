@@ -792,7 +792,9 @@ with tab3:
         st.divider()
         
         # LIVE SINGLE-ROW OVERWRITE SYNC TO GOOGLE SHEETS! (Wired with our brand new dynamic name + handle search!)
-        col_sv1, col_sv2 = st.columns([1, 4])
+        # LIVE SINGLE-ROW OVERWRITE SYNC & BULLETPROOF COPY-LAUNCH BUTTON
+        col_sv1, col_sv2, col_sv3 = st.columns([1.5, 1.5, 3])
+        
         with col_sv1:
             if st.button("💾 Save Custom Pitch to CRM", type="primary", use_container_width=True):
                 with st.spinner("Locating lead and updating spreadsheet..."):
@@ -803,8 +805,37 @@ with tab3:
                         st.success(f"✅ CRM Row Updated successfully! ({error_msg})")
                     else:
                         st.error(f"❌ Overwrite Failed: {error_msg}")
+                        
         with col_sv2:
-            st.info("💡 *Tip: Click 'Save Custom Pitch to CRM' to find this contact in your Google Sheet and overwrite the placeholder templates with these newly generated customized notes!*")
+            # 1. Escape quotes & newlines to prevent Javascript string syntax errors
+            escaped_invite = final_invite.replace("'", "\\'").replace('"', '\\"').replace("\n", "\\n")
+            escaped_url = st.session_state["target_url"].replace("'", "\\'")
+            
+            # 2. Sleek, inline-styled HTML5/JS button that copies to clipboard and opens the URL simultaneously!
+            button_html = f"""
+            <button id="copy-launch-btn" onclick="navigator.clipboard.writeText('{escaped_invite}'); window.open('{escaped_url}', '_blank');" style="
+                background-color: #ff4b4b;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                font-size: 15px;
+                font-weight: bold;
+                border-radius: 8px;
+                cursor: pointer;
+                width: 100%;
+                height: 43px;
+                display: inline-block;
+                text-align: center;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+            " onmouseover="this.style.backgroundColor='#ff3333'" onmouseout="this.style.backgroundColor='#ff4b4b'">
+                📋 Copy Invite & Open
+            </button>
+            """
+            st.markdown(button_html, unsafe_allow_html=True)
+            
+        with col_sv3:
+            st.info("💡 *Tip: Click 'Save Custom Pitch' to update your Google Sheet [1]. Click 'Copy Invite & Open' to instantly copy your 300-char handshake note and open their LinkedIn profile in a new tab [1]!*")
 
     with col_p2:
         st.info("💡 **Why this works:** Rather than sending a generic intro, highlighting your actual technical background (Vivarium & V-OS Sovereign) proves immediately to senior partners that you possess genuine technical and restructuring-related skills.")
