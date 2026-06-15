@@ -888,27 +888,36 @@ with tab4:
     st.subheader("Your Active Cloud CRM Dashboard")
     st.write("Displaying metrics and records pulled directly from your active Google Sheet.")
     
-    if st.button("🔄 Sync & Refresh CRM Dashboard", type="primary"):
-        sheet, conn_error = get_google_sheet(sheet_name)
-        if conn_error:
-            st.error(f"❌ Google Sheets Connection Error: {conn_error}")
-        elif sheet is not None:
-            with st.spinner("Fetching live data from Google Sheets..."):
-                try:
-                    # Fetch all 9 columns directly by their mathematical positions to prevent KeyErrors!
-                    names = sheet.col_values(1)[1:]      # Column A
-                    firms = sheet.col_values(2)[1:]      # Column B
-                    categories = sheet.col_values(3)[1:] # Column C
-                    locations = sheet.col_values(4)[1:]  # Column D
-                    urls = sheet.col_values(5)[1:]       # Column E
-                    statuses = sheet.col_values(6)[1:]   # Column F
-                    hooks = sheet.col_values(7)[1:]      # Column G
-                    detaileds = sheet.col_values(8)[1:]  # Column H
-                    notes = sheet.col_values(9)[1:]      # Column I
-                    
-                    if names:
+    sheet, conn_error = get_google_sheet(sheet_name)
+    
+    if conn_error:
+        st.error(f"❌ Google Sheets Connection Error: {conn_error}")
+    elif sheet is not None:
+        # Initialize session state for your CRM dataframe so edits are preserved across clicks!
+        if "crm_df_state" not in st.session_state:
+            st.session_state["crm_df_state"] = None
+            
+        col_ref1, col_ref2 = st.columns([1.5, 4])
+        with col_ref1:
+            if st.button("🔄 Refresh CRM Data from Cloud", type="primary", use_container_width=True):
+                with st.spinner("Fetching live data from Google Sheets..."):
+                    try:
+                        # Fetch all 10 columns natively (including the new Column J!)
+                        names = sheet.col_values(1)[1:]       # Column A
+                        firms = sheet.col_values(2)[1:]       # Column B
+                        categories = sheet.col_values(3)[1:]  # Column C
+                        locations = sheet.col_values(4)[1:]   # Column D
+                        urls = sheet.col_values(5)[1:]        # Column E
+                        statuses = sheet.col_values(6)[1:]    # Column F
+                        hooks = sheet.col_values(7)[1:]       # Column G
+                        detaileds = sheet.col_values(8)[1:]   # Column H
+                        notes = sheet.col_values(9)[1:]       # Column I
+                        
+                        # Column J is our Visited checkmarks column!
+                        visited_vals = sheet.col_values(10)[1:] if len(sheet.row_values(1)) >= 10 else []
+                        
                         # Pad lists with empty strings to prevent length mismatches
-                        max_len = max(len(names), len(firms), len(categories), len(locations), len(urls), len(statuses), len(hooks), len(detaileds), len(notes))
+                        max_len = max(len(names), len(firms), len(categories), len(locations), len(urls), len(statuses), len(hooks), len(detaileds), len(notes), len(visited_vals))
                         names += [""] * (max_len - len(names))
                         firms += [""] * (max_len - len(firms))
                         categories += [""] * (max_len - len(categories))
@@ -918,9 +927,12 @@ with tab4:
                         hooks += [""] * (max_len - len(hooks))
                         detaileds += [""] * (max_len - len(detaileds))
                         notes += [""] * (max_len - len(notes))
+                        visited_vals += ["FALSE"] * (max_len - len(visited_vals))
                         
-                        # Build the unified, clean CRM dataframe
-                        crm_df = pd.DataFrame({
+                        # Convert string "TRUE"/"FALSE" values from Google Sheets to actual Python Booleans!
+                        visited_bools = [val.strip().upper() == "TRUE" for val in visited_vals]
+                        
+                        st.session_state["crm_df_state"] = pd.DataFrame({
                             "Name & Title": names,
                             "Detected Firm": firms,
                             "Category": categories,
@@ -929,33 +941,67 @@ with tab4:
                             "Outreach Status": statuses,
                             "Connection Invite Note": hooks,
                             "Detailed Post-Connection Pitch": detaileds,
-                            "Notes / Snippet Summary": notes
+                            "Notes / Snippet Summary": notes,
+                            "Visited": visited_bools  # Natively rendered as an interactive checkbox!
                         })
-                        
-                        # Clean count of active categories
-                        boutiques = len(crm_df[crm_df["Category"].str.strip().str.lower() == "elite boutique"])
-                        specs = len(crm_df[crm_df["Category"].str.strip().str.lower() == "independent specialist"])
-                        
-                        col_mt1, col_col2, col_col3 = st.columns(3)
-                        with col_mt1:
-                            st.markdown(f"<div class='custom-card'><div class='metric-label'>Total CRM Leads</div><div class='metric-value'>{len(crm_df)}</div></div>", unsafe_allow_html=True)
-                        with col_col2:
-                            st.markdown(f"<div class='custom-card'><div class='metric-label'>Elite Boutique Targets</div><div class='metric-value'>{boutiques}</div></div>", unsafe_allow_html=True)
-                        with col_col3:
-                            st.markdown(f"<div class='custom-card'><div class='metric-label'>Specialist RX Targets</div><div class='metric-value'>{specs}</div></div>", unsafe_allow_html=True)
-                        
-                        # Configured with visited link style integration natively!
-                        st.dataframe(
-                            crm_df, 
-                            width="stretch",
-                            column_config={
-                                "LinkedIn Link": st.column_config.LinkColumn(
-                                    "LinkedIn Link",
-                                    display_text="🔗 Profile"
-                                )
-                            }
-                        )
-                    else:
-                        st.info("Your Google Sheet is connected but currently contains no leads. Search and save some leads from Tab 1 to see them here!")
-                except Exception as ex:
-                    st.error(f"Error reading Google Sheets: {ex}")
+                        st.success("Successfully loaded your live CRM!")
+                    except Exception as ex:
+                        st.error(f"Error reading Google Sheets: {ex}")
+        
+        # Display the CRM Checklist and Save mechanics if loaded
+        if st.session_state["crm_df_state"] is not None:
+            df = st.session_state["crm_df_state"]
+            
+            # 1. Render premium glassmorphism KPI Metrics
+            boutiques = len(df[df["Category"].str.strip().str.lower() == "elite boutique"])
+            specs = len(df[df["Category"].str.strip().str.lower() == "independent specialist"])
+            visited_count = len(df[df["Visited"] == True])
+            
+            col_mt1, col_col2, col_col3 = st.columns(3)
+            with col_mt1:
+                st.markdown(f"<div class='custom-card'><div class='metric-label'>Total CRM Leads</div><div class='metric-value'>{len(df)}</div></div>", unsafe_allow_html=True)
+            with col_col2:
+                st.markdown(f"<div class='custom-card'><div class='metric-label'>Visited Contacts ✅</div><div class='metric-value'>{visited_count}</div></div>", unsafe_allow_html=True)
+            with col_col3:
+                st.markdown(f"<div class='custom-card'><div class='metric-label'>Specialist RX Targets</div><div class='metric-value'>{specs}</div></div>", unsafe_allow_html=True)
+            
+            # 2. Render the interactive spreadsheet editor (Only the "Visited" checkboxes are editable!)
+            edited_df = st.data_editor(
+                df,
+                width="stretch",
+                disabled=["Name & Title", "Detected Firm", "Category", "Location", "LinkedIn Link", "Outreach Status", "Connection Invite Note", "Detailed Post-Connection Pitch", "Notes / Snippet Summary"],
+                column_config={
+                    "Visited": st.column_config.CheckboxColumn(
+                        "Visited? ✅",
+                        help="Check this box once you've visited their profile or connected on LinkedIn!",
+                        default=False
+                    ),
+                    "LinkedIn Link": st.column_config.LinkColumn(
+                        "LinkedIn Link",
+                        display_text="🔗 Profile"
+                    )
+                },
+                key="crm_interactive_editor"
+            )
+            
+            # 3. HIGH-SPEED ONE-CALL SAVE mechanism (Overwrites entire Column J instantly!)
+            col_sv_crm1, col_sv_crm2 = st.columns([1.5, 4])
+            with col_sv_crm1:
+                if st.button("💾 Save Checklist Edits", type="primary", use_container_width=True):
+                    with st.spinner("Syncing your checkmarks securely with Google Sheets Cloud..."):
+                        try:
+                            # Map Python booleans to Google Sheet strings
+                            col_j_values = ["Visited"] + ["TRUE" if val else "FALSE" for val in edited_df["Visited"].tolist()]
+                            
+                            # Write the entire column J range to Google Sheets in exactly ONE API call! (Bypasses 429 limits)
+                            range_to_update = f"J1:J{len(col_j_values)}"
+                            sheet.update(range_to_update, [[v] for v in col_j_values])
+                            
+                            # Keep session state updated with your newly saved checkboxes
+                            st.session_state["crm_df_state"] = edited_df
+                            st.success("✅ Checklist edits saved permanently in Google Sheets!")
+                            st.rerun()
+                        except Exception as save_err:
+                            st.error(f"Error saving checklist: {save_err}")
+            with col_sv_crm2:
+                st.info("💡 *Tip: Check or uncheck the 'Visited? ✅' boxes as you network, and click 'Save Checklist Edits' to permanently back them up in your Google Sheet!*")
