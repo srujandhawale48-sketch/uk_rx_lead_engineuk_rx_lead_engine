@@ -50,6 +50,11 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 1px;
     }
+    /* Instantly turns clicked/visited links grey to track your progress! */
+    a:visited {
+        color: #8b949e !important;
+        text-decoration: line-through !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -838,21 +843,66 @@ with tab4:
         elif sheet is not None:
             with st.spinner("Fetching live data from Google Sheets..."):
                 try:
-                    records = sheet.get_all_records()
-                    if records:
-                        crm_df = pd.DataFrame(records)
+                    # Fetch all 9 columns directly by their mathematical positions to prevent KeyErrors!
+                    names = sheet.col_values(1)[1:]      # Column A
+                    firms = sheet.col_values(2)[1:]      # Column B
+                    categories = sheet.col_values(3)[1:] # Column C
+                    locations = sheet.col_values(4)[1:]  # Column D
+                    urls = sheet.col_values(5)[1:]       # Column E
+                    statuses = sheet.col_values(6)[1:]   # Column F
+                    hooks = sheet.col_values(7)[1:]      # Column G
+                    detaileds = sheet.col_values(8)[1:]  # Column H
+                    notes = sheet.col_values(9)[1:]      # Column I
+                    
+                    if names:
+                        # Pad lists with empty strings to prevent length mismatches
+                        max_len = max(len(names), len(firms), len(categories), len(locations), len(urls), len(statuses), len(hooks), len(detaileds), len(notes))
+                        names += [""] * (max_len - len(names))
+                        firms += [""] * (max_len - len(firms))
+                        categories += [""] * (max_len - len(categories))
+                        locations += [""] * (max_len - len(locations))
+                        urls += [""] * (max_len - len(urls))
+                        statuses += [""] * (max_len - len(statuses))
+                        hooks += [""] * (max_len - len(hooks))
+                        detaileds += [""] * (max_len - len(detaileds))
+                        notes += [""] * (max_len - len(notes))
+                        
+                        # Build the unified, clean CRM dataframe
+                        crm_df = pd.DataFrame({
+                            "Name & Title": names,
+                            "Detected Firm": firms,
+                            "Category": categories,
+                            "Location": locations,
+                            "LinkedIn Link": urls,
+                            "Outreach Status": statuses,
+                            "Connection Invite Note": hooks,
+                            "Detailed Post-Connection Pitch": detaileds,
+                            "Notes / Snippet Summary": notes
+                        })
+                        
+                        # Clean count of active categories
+                        boutiques = len(crm_df[crm_df["Category"].str.strip().str.lower() == "elite boutique"])
+                        specs = len(crm_df[crm_df["Category"].str.strip().str.lower() == "independent specialist"])
                         
                         col_mt1, col_col2, col_col3 = st.columns(3)
                         with col_mt1:
                             st.markdown(f"<div class='custom-card'><div class='metric-label'>Total CRM Leads</div><div class='metric-value'>{len(crm_df)}</div></div>", unsafe_allow_html=True)
                         with col_col2:
-                            boutiques = len(crm_df[crm_df["Category"] == "Elite Boutique"])
                             st.markdown(f"<div class='custom-card'><div class='metric-label'>Elite Boutique Targets</div><div class='metric-value'>{boutiques}</div></div>", unsafe_allow_html=True)
                         with col_col3:
-                            specs = len(crm_df[crm_df["Category"] == "Independent Specialist"])
                             st.markdown(f"<div class='custom-card'><div class='metric-label'>Specialist RX Targets</div><div class='metric-value'>{specs}</div></div>", unsafe_allow_html=True)
                         
-                        st.dataframe(crm_df, width="stretch")
+                        # Configured with visited link style integration natively!
+                        st.dataframe(
+                            crm_df, 
+                            width="stretch",
+                            column_config={
+                                "LinkedIn Link": st.column_config.LinkColumn(
+                                    "LinkedIn Link",
+                                    display_text="🔗 Profile"
+                                )
+                            }
+                        )
                     else:
                         st.info("Your Google Sheet is connected but currently contains no leads. Search and save some leads from Tab 1 to see them here!")
                 except Exception as ex:
