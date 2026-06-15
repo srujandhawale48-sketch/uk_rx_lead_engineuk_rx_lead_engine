@@ -939,11 +939,11 @@ with tab4:
                             "Category": categories,
                             "Location": locations,
                             "LinkedIn Link": urls,
+                            "Visited": visited_bools,  # <--- Shifted elegantly here!
                             "Outreach Status": statuses,
                             "Connection Invite Note": hooks,
                             "Detailed Post-Connection Pitch": detaileds,
-                            "Notes / Snippet Summary": notes,
-                            "Visited": visited_bools  # Natively rendered as an interactive checkbox!
+                            "Notes / Snippet Summary": notes
                         })
                         st.success("Successfully loaded your live CRM!")
                     except Exception as ex:
