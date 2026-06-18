@@ -791,7 +791,7 @@ Srujan"""
                         """
                         
                         # Direct HTTP REST POST payload structure (Gemini 3.5-flash)
-                        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={gemini_key}"
+                        # Direct HTTP REST POST payload structure (With automatic 2.5-flash fallback!)
                         headers = {"Content-Type": "application/json"}
                         payload = {
                             "contents": [
@@ -803,8 +803,24 @@ Srujan"""
                             ]
                         }
                         
-                        # 60-second robust timeout
-                        response = requests.post(url, headers=headers, json=payload, timeout=60)
+                        # We try 3.5-flash first, and fallback to 2.5-flash if 3.5 is congested!
+                        models_to_try = ["gemini-3.5-flash", "gemini-2.5-flash"]
+                        response = None
+                        
+                        for model_name in models_to_try:
+                            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
+                            try:
+                                response = requests.post(url, headers=headers, json=payload, timeout=60)
+                                if response.status_code == 200:
+                                    break  # Success! Exit loop
+                                elif response.status_code == 503:
+                                    # If congested, show a toast notification and try the backup model!
+                                    st.toast(f"⚠️ {model_name} is congested. Swapping to backup model...")
+                                    continue
+                                else:
+                                    break  # Other error, break and handle below
+                            except Exception:
+                                continue
                         
                         if response.status_code == 200:
                             data = response.json()
