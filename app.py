@@ -779,7 +779,8 @@ Srujan"""
                         
                         Message 1: A brief connection request handshake. It must be strictly under 300 characters (including spaces). Keep it brief, polite, and establish a hook.
                         
-                        Message 2: A detailed, high-leverage follow-up message to be sent as a DM after they accept. There is no strict length limit here. You must make it highly professional, extremely tailored, extract specific impressive points from Srujan's CV (such as Vivarium Group, V-OS Sovereign, valuation, LBO, etc.), relate them to the recipient's focus or firm, and explicitly ask for 15 minutes of their time for a virtual coffee chat/Zoom call.
+                        Message 2: A highly professional, extremely dense, but ultra-short follow-up message to be sent as a DM after they accept. 
+                        STRICT RULE: It MUST be strictly between 100 and 120 words total. Do not use generic corporate filler or long introductions. Pack all of Srujan's core credentials—incoming Durham MSc student, founder of Vivarium Group, developer of V-OS Sovereign (automating IBC/US Title 11), turnaround cash management, and IVS-compliant valuation models—into exactly 2 or 3 highly compressed, punchy, and academic-sounding sentences. Connect these achievements to the recipient's focus or firm, and end by asking for a brief 15-minute virtual coffee chat.
                         
                         OUTPUT FORMAT REQUIREMENT:
                         You must respond with the connection invite first, followed by a separator line of exactly "===", followed by the detailed post-connection pitch. Do not include any other markdown formatting, bullet points, headers, or explanations. Just output the two blocks separated by "===".
