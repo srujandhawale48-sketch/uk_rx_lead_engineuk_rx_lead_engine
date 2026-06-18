@@ -723,7 +723,16 @@ with tab3:
     first_name = target_name.split()[0]
     
     fallback_invite = f"Hi {first_name}, incoming Durham MSc. I founded Vivarium Group and built V-OS Sovereign, an agentic intelligence terminal for distressed asset restructuring (IBC/US Title 11). Highly admire your restructuring work at {target_firm} and would love to connect."
-    fallback_follow_up = f"Hi {first_name}, thanks for connecting! As an incoming Durham MSc student with a background building custom turnaround software (V-OS Sovereign), I wanted to reach out. I would highly value a brief 15-minute virtual coffee chat to ask about your outlook on tech-driven turnarounds in the UK mid-market. Best, Srujan."
+    fallback_follow_up = f"""Hi {first_name},
+
+Thanks for connecting! 
+
+As an incoming Durham MSc student and the founder of Vivarium Group, I've spent the last few years building turnaround legal-tech (like V-OS Sovereign to automate restructuring logic) alongside implementing valuation models.
+
+I highly admire {target_firm}'s reputation in the UK market. I would deeply value a brief 15-minute virtual coffee next week to hear your outlook on the industry and get your advice. 
+
+Best,
+Srujan""" 
     
     col_p1, col_p2 = st.columns([2, 1])
     
